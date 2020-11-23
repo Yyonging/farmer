@@ -29,8 +29,8 @@ const App = {
   },
 
   refreshBalance: async function() {
-    const { getBalance } = this.meta.methods;
-    const balance = await getBalance(this.account).call();
+    const { balanceOf } = this.meta.methods;
+    const balance = await balanceOf(this.account).call();
 
     const balanceElement = document.getElementsByClassName("balance")[0];
     balanceElement.innerHTML = balance;
@@ -42,8 +42,8 @@ const App = {
 
     this.setStatus("Initiating transaction... (please wait)");
 
-    const { sendCoin } = this.meta.methods;
-    await sendCoin(receiver, amount).send({ from: this.account });
+    const { transfer } = this.meta.methods;
+    await transfer(receiver, amount).send({ from: this.account });
 
     this.setStatus("Transaction complete!");
     this.refreshBalance();
@@ -68,7 +68,7 @@ window.addEventListener("load", function() {
     );
     // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
     App.web3 = new Web3(
-      new Web3.providers.HttpProvider("http://127.0.0.1:7545"),
+      new Web3.providers.HttpProvider("http://127.0.0.1:8545"),
     );
   }
 
