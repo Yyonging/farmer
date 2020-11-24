@@ -1,7 +1,5 @@
 pragma solidity >=0.4.22 <0.7.0;
 
-import "./ConvertLib.sol";
-
 contract MetaCoin {
 	string public name = "TreeCoin"; //树币
 	string public symbol = "TRC";
@@ -19,7 +17,7 @@ contract MetaCoin {
 	event Approval(address indexed _from, address indexed _to, uint256 _value);
 
 	constructor() public {
-		for(uint i = 0; i < totalSupply; i++) {
+		for(uint i = 1; i <= totalSupply; i++) {
 			initTrcs.push(Trc(i));
 		}
 		farmer = tx.origin;
@@ -72,6 +70,7 @@ contract MetaCoin {
     function approve(address _spender, uint256 _value) public returns (bool success) {
 		require(_value < totalSupply);
 		require(_value >= 0);
+		require(_spender != address(0));
         Trc[] memory allowance = allowed[msg.sender][_spender];
 		for (uint i = 0; i < allowance.length; i++) {
 			if (allowance[i].number == _value) {
@@ -83,6 +82,10 @@ contract MetaCoin {
         return true;
     }
 
+	function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
+		return allowed[_owner][_spender].length;
+	}
+
 	function checkOwn(address addr, uint number) public view returns(bool) {
 		for (uint i = 0; i < balances[addr].length; i++){
 			if (balances[addr][i].number == number) {
@@ -92,11 +95,10 @@ contract MetaCoin {
 		return false;
 	}
 
-	function getBalanceInEth(address addr) public view returns(uint){
-		return ConvertLib.convert(getBalance(addr),2);
-	}
-
-	function getBalance(address addr) public view returns(uint) {
-		return balances[addr].length;
+	//查看持有的树币列表
+	function getBalance(address addr) public view returns(uint[16] memory bs) {
+		for (uint i = 0; i < balances[addr].length; i++) {
+			bs[i] = balances[addr][i].number;
+		}
 	}
 }

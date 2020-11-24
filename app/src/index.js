@@ -34,6 +34,13 @@ const App = {
 
     const balanceElement = document.getElementsByClassName("balance")[0];
     balanceElement.innerHTML = balance;
+
+    const { getBalance } = this.meta.methods;
+    const balanceList = await getBalance(this.account).call();
+    console.log(balanceList)
+    const balanceListElement = document.getElementsByClassName("balanceList")[0];
+    balanceListElement.innerHTML = balanceList.toString();
+
   },
 
   sendCoin: async function() {
@@ -43,8 +50,9 @@ const App = {
     this.setStatus("Initiating transaction... (please wait)");
 
     const { transfer } = this.meta.methods;
-    await transfer(receiver, amount).send({ from: this.account });
-
+    console.log(receiver, amount);
+    const success = await transfer(receiver, amount).send({ from: this.account });
+    console.log(success);
     this.setStatus("Transaction complete!");
     this.refreshBalance();
   },
