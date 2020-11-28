@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>MetaCoin | Truffle Webpack Demo w/ Frontend</title>
+    <title>TRC</title>
   </head>
   <style>
     input {
@@ -10,30 +10,22 @@
     }
   </style>
   <body>
-    <h1>MetaCoin — Example Truffle Dapp</h1>
-    <p>You have <strong class="balance">loading...</strong> TRC</p>
+    <h1>基于区块链的果树扶贫项目</h1>
+    <p>项目当前进度:<tr><td> <label id="projectProcess"></label></td></tr></p>
+    <h3>果树列表</h3><ul id="tree"></ul>
+    <h3>果树交易</h3>
+    <p>我持有的果树共有：<label class="balance"></label>棵</p>
+    <p>我持有的果树编号为: <label><strong class="balanceList"></strong</label></p>
 
-    <p id="showCoins"><strong class="balanceList"></strong></p>
-
-    <h1>Send MetaCoin</h1>
-
-    <label for="amount">Amount:</label>
-    <input type="text" id="amount" placeholder="e.g. 95" />
-
-    <label for="receiver">To address:</label>
-    <input
-      type="text"
-      id="receiver"
-      placeholder="e.g. 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"
-    />
-
-    <button onclick="App.sendCoin()">Send MetaCoin</button>
-
+    向地址为:<input
+    type="text"
+    id="receiver"
+    placeholder="e.g. 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"
+  /> 的人转让编号为:
+    <input type="text" id="amount" placeholder="e.g. 3" />
+    的果树    
+    <button onclick="App.sendCoin()">确认</button>
     <p id="status"></p>
-    <p>
-      <strong>Hint:</strong> open the browser developer console to view any
-      errors and warnings.
-    </p>
     <script src="index.js"></script>
   </body>
 </html>
