@@ -29,15 +29,6 @@ class App extends Component {
   render() {
       return (
         <SiderDemo />)
-      //   <div className="App">
-      //     <h1>基于区块链的果树扶贫应用</h1>
-      //     <ProcessStatus></ProcessStatus>
-      //     <TreeList></TreeList>
-      //     <h3>果树交易</h3>
-      //     <ShowTree></ShowTree>
-      //     <TransactTrc></TransactTrc>
-      //   </div>
-      // );
   }
 
 }

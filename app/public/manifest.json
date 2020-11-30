@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "TRC",
+  "name": "果树Token化研究应用",
   "icons": [
     {
       "src": "favicon.ico",

@@ -6,8 +6,6 @@ import InfiniteScroll from 'react-infinite-scroller';
 
 import { Layout, Menu, Button, Card } from 'antd';
 import {
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
   UserOutlined,
   PieChartOutlined,
   UploadOutlined,
@@ -15,7 +13,7 @@ import {
 
 import { Form, Input, Select } from 'antd';
 
-const { Header, Sider, Content } = Layout;
+const { Header, Sider} = Layout;
 
 const { Option } = Select;
 const layout = {
@@ -33,104 +31,6 @@ const tailLayout = {
   },
 };
 
-class Demo extends React.Component {
-  formRef = React.createRef();
-  onGenderChange = (value) => {
-    switch (value) {
-      case 'male':
-        this.formRef.current.setFieldsValue({
-          note: 'Hi, man!',
-        });
-        return;
-
-      case 'female':
-        this.formRef.current.setFieldsValue({
-          note: 'Hi, lady!',
-        });
-        return;
-
-      case 'other':
-        this.formRef.current.setFieldsValue({
-          note: 'Hi there!',
-        });
-        return;
-    }
-  };
-  onFinish = (values) => {
-    console.log(values);
-  };
-  onReset = () => {
-    this.formRef.current.resetFields();
-  };
-  onFill = () => {
-    this.formRef.current.setFieldsValue({
-      note: 'Hello world!',
-      gender: 'male',
-    });
-  };
-
-  render() {
-    return (
-      <Form {...layout} ref={this.formRef} name="control-ref" onFinish={this.onFinish}>
-        <Form.Item
-          name="address"
-          label="区块链地址"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name="number"
-          label="果树编号"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <Select
-            placeholder="Select a option and change input text above"
-            onChange={this.onGenderChange}
-            allowClear
-          >
-            <Option value="male">male</Option>
-            <Option value="female">female</Option>
-            <Option value="other">other</Option>
-          </Select>
-        </Form.Item>
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, currentValues) => prevValues.gender !== currentValues.gender}
-        >
-          {({ getFieldValue }) => {
-            return getFieldValue('gender') === 'other' ? (
-              <Form.Item
-                name="customizeGender"
-                label="Customize Gender"
-                rules={[
-                  {
-                    required: true,
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            ) : null;
-          }}
-        </Form.Item>
-        <Form.Item {...tailLayout}>
-          <Button type="primary" htmlType="submit">
-            转让
-          </Button>
-        </Form.Item>
-      </Form>
-    );
-  }
-}
 
 
 class BaseComponent extends React.Component {
@@ -168,7 +68,7 @@ class BaseComponent extends React.Component {
       const { getBalance } = Block.meta.methods;
       const balanceList = await getBalance(Block.account).call();
       console.log(balanceList);
-      var balanceListShow = balanceList.filter(item => item!==0);
+      var balanceListShow = balanceList.filter(item => item!=="0");
       this.setState({balanceList:balanceListShow});
     }
   }
@@ -176,13 +76,87 @@ class BaseComponent extends React.Component {
   async transfer(receiver, amount) {
     await this.connect();
     this.setState({status:"Initiating transaction... (please wait)"})
+    message.info(this.state.status);
     const { transfer } = Block.meta.methods;
     const success = await transfer(receiver, amount).send({ from: Block.account });
     console.log(success);
     this.setState({status:"Transaction complete!"});
+    message.info(this.state.status);
+  }
+
+  async buy(number) {
+    await this.connect();
+    console.log(number);
+    const {buyTrc} = Block.meta.methods;
+    const success = await buyTrc(number).send({from: Block.account, value:10**17});
+    console.log("buy", success);
   }
 
 }
+
+class Demo extends BaseComponent {
+  constructor(props) {
+    super(props);
+    this.onFinish = this.onFinish.bind(this);
+    this.state = {
+      balanceList:[],
+      status:""
+    }
+  }
+
+
+  onFinish = (values) => {
+    this.transfer(values.address, values.number);
+    this.refreshBalance();
+  };
+
+  componentDidMount() {
+    this.refreshBalance();
+  }
+
+  render() {
+    return (
+      <div>
+      <Form {...layout} name="control-ref" onFinish={this.onFinish}>
+        <Form.Item
+          name="address"
+          label="区块链地址"
+          rules={[
+            {
+              required: true,
+            },
+          ]} style={{width:"90%"}}
+        >
+          <Input placeholder="eg.0xc1C24A14cD93A4c96678e2d85F17a26Efb12D37e"/>
+        </Form.Item>
+        <Form.Item
+          name="number"
+          label="果树编号"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <Select
+            placeholder="选择你拥有的果树编号"
+            allowClear
+            style={{width:"80%"}}
+          > 
+            {this.state.balanceList.map(item => (<Option value={item} key={item}>果树编号: {item}</Option>))}
+          </Select>
+        </Form.Item>
+        <Form.Item {...tailLayout}>
+          <Button type="primary" htmlType="submit">
+            转让
+          </Button>
+        </Form.Item>
+      </Form>
+      </div>
+    );
+  }
+}
+
 
 class MyCard extends BaseComponent {
   constructor(props) {
@@ -201,7 +175,7 @@ class MyCard extends BaseComponent {
   render() {
     return (
       <Card title="我的果树信息">
-      <Card type="inner" title="果树数量" extra={<a href=""></a>}>
+      <Card type="inner" title="果树数量" >
         <strong>{this.state.balance}</strong>
       </Card>
       {this.state.balance !== 0 &&
@@ -209,7 +183,6 @@ class MyCard extends BaseComponent {
             style={{ marginTop: 16 }}
             type="inner"
             title="果树编号"
-            extra={<a href=""></a>}
           >
             {this.state.balanceList.toString()}
           </Card>
@@ -218,9 +191,9 @@ class MyCard extends BaseComponent {
     );
   }
 }
+
 class InfiniteListExample extends BaseComponent {
   state = {
-    data: [{id:1, name:{last:'dyq'}, email:"123@123.com"}],
     balanceList:[],
     loading: false,
     hasMore: true,
@@ -239,13 +212,19 @@ class InfiniteListExample extends BaseComponent {
     this.refreshStatus();
   }
 
+  buyTrc(key) {
+    console.log(key);
+    message.info("ss"+key);
+    this.buy(key);
+  }
+
   handleInfiniteOnLoad = () => {
-    let { data } = this.state;
+    let { balanceList } = this.state;
     this.setState({
       loading: true,
     });
-    if (data.length > 15) {
-      message.warning('Infinite List loaded all');
+    if (balanceList.length > 15) {
+      message.warning('已经到底了');
       this.setState({
         hasMore: false,
         loading: false,
@@ -275,7 +254,7 @@ class InfiniteListExample extends BaseComponent {
                   title={<a href="">{"果树编号："+item.key}</a>}
                 />
                 <div>{
-                    item.value === "1"? <Button type="dashed" size="middle">认领</Button>:
+                    item.value === "1"? <Button type="dashed" size="middle" onClick={()=>this.buyTrc(item.key)}>认领</Button>:
                     <Button type="dashed" size="middle" disabled>已认领</Button>
                   }
                   </div>
@@ -297,6 +276,7 @@ class InfiniteListExample extends BaseComponent {
 class SiderDemo extends React.Component {
   state = {
     collapsed: false,
+    current:{key:1}
   };
 
   toggle = () => {
@@ -305,46 +285,48 @@ class SiderDemo extends React.Component {
     });
   };
 
+  onClickItem(index) {
+    console.log(this.state);
+    this.setState({current:{key:index}});
+  }
+
   render() {
     return (
       <Layout>
         <Sider trigger={null} collapsible collapsed={this.state.collapsed}>
-          <div className="logo" ><h1 >基于区块链的果树扶贫应用</h1></div>
+          <div className="logo" ><h1 >果树Token化研究应用</h1></div>
           <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
-            <Menu.Item key="1" icon={<UserOutlined />}>
+            <Menu.Item key="1" icon={<UserOutlined />} onClick={()=>this.onClickItem(1)}>
               我的果树
             </Menu.Item>
-            <Menu.Item key="2" icon={<PieChartOutlined/>}>
+            <Menu.Item key="2" icon={<PieChartOutlined/>} onClick={()=>this.onClickItem(2)}>
               果树列表
             </Menu.Item>
-            <Menu.Item key="3" icon={<UploadOutlined />}>
+            <Menu.Item key="3" icon={<UploadOutlined />} onClick={()=>this.onClickItem(3)}>
               果树转让
             </Menu.Item>
           </Menu>
         </Sider>
         <Layout className="site-layout">
           <Header className="site-layout-background" style={{ padding: 0 }}>
-            <h1 style={{width: "100%", textAlign:"center"}}>基于区块链的果树扶贫应用</h1>
+            <h1 style={{width: "100%", textAlign:"center"}}>果树Token化研究应用</h1>
           </Header>
-          {/* <InfiniteListExample className="site-layout-background"
+          {
+            (this.state.current.key === 1) && <MyCard/> ||
+            (this.state.current.key === 2 && <InfiniteListExample className="site-layout-background"
             style={{
               margin: '24px 16px',
               padding: 24,
               minHeight: 280,
               height: "100%",
-            }}></InfiniteListExample> */}
-          <MyCard/>
-          {/* <Demo/> */}
+            }}></InfiniteListExample> ) || 
+            (this.state.current.key === 3 && <Demo/>)
+          }
         </Layout>
       </Layout>
     );
   }
 }
-
-
-
-
-
 
 
 class ProcessStatus extends BaseComponent {

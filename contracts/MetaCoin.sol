@@ -4,7 +4,7 @@ contract MetaCoin {
 	string public name = "TreeCoin"; //树币
 	string public symbol = "TRC";
 	uint constant totalSupply = 16;
-	uint256 price = 20; //认领价格
+	uint256 price = 10**17; //认领价格
 	address farmer;
 	struct Trc {
 		uint number; //果树编号
@@ -116,11 +116,13 @@ contract MetaCoin {
         require(number > 0);
         require(number <= totalSupply);
 		require(msg.sender != farmer);
+		require(msg.value == price);
 		if(_deleteOne(farmer, number)) {
 			balances[msg.sender].push(initTrcs[number-1]);
 			emit Transfer(farmer, msg.sender, number);
 			success = true;
 		}
+		require(success);
 	}
 
 	//查看持有的树币列表
