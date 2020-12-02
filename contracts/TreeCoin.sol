@@ -1,15 +1,15 @@
 pragma solidity >=0.4.22 <0.7.0;
 
-contract MetaCoin {
+contract TreeCoin {
 	string public name = "TreeCoin"; //树币
 	string public symbol = "TRC";
-	uint constant totalSupply = 16;
-	uint256 price = 10**17; //认领价格
-	address farmer;
+	uint constant public totalSupply = 16;
+	uint256 price = 10**17; //最低价格
+	address public farmer;
 	struct Trc {
-		uint number; //果树编号
+		uint number; //果树编号 可以扩展更多的描述信息
 	}
-	Trc[] initTrcs;
+	Trc[] public initTrcs;
 	enum Process { free, Appeal, end }
 	Process process;
 	mapping (address => Trc[]) balances;
@@ -19,9 +19,14 @@ contract MetaCoin {
 	event Approval(address indexed _from, address indexed _to, uint256 _value);
 
 	constructor() public {
-		for(uint i = 1; i <= totalSupply; i++) {
-			initTrcs.push(Trc(i));
-		}
+		// for(uint i = 1; i <= totalSupply; i++) {
+		// 	initTrcs.push(Trc(i));
+		// }
+		//允许自定义编号
+		initTrcs = [Trc(6), Trc(66), Trc(666), Trc(6666),
+			Trc(66666), Trc(666666), Trc(6666666), Trc(66666666),
+			Trc(8), Trc(88), Trc(888), Trc(8888),
+			Trc(88888), Trc(888888), Trc(8888888), Trc(88888888)];
 		farmer = tx.origin;
 		balances[farmer] = initTrcs;
 	}
@@ -38,7 +43,7 @@ contract MetaCoin {
 		if (_deleteOne(msg.sender, _value)) {
 			balances[_to].push(initTrcs[_value-1]);
 			emit Transfer(msg.sender, _to, _value);
-			success = true;
+			success = true; 
 		}
     }
 

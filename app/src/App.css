@@ -53,15 +53,24 @@ html,body,#root{
   border-radius: 4px;
   overflow: auto;
   padding: 8px 24px;
+
   height: 100%;
 }
+
 .demo-loading-container {
   position: absolute;
   bottom: 40px;
   width: 100%;
   text-align: center;
 }
+.ant-list-item-meta-title {
+  margin-bottom: 0px;
+  line-height: 2.0;
+}
 
+.ant-list-item-meta-description {
+  display: none;
+}
 
 #components-layout-demo-custom-trigger .trigger {
   font-size: 18px;

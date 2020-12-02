@@ -117,7 +117,7 @@ class Demo extends BaseComponent {
   render() {
     return (
       <div>
-      <Form {...layout} name="control-ref" onFinish={this.onFinish}>
+      <Form {...layout} name="control-ref" onFinish={this.onFinish} style={{margin:70}}>
         <Form.Item
           name="address"
           label="区块链地址"
