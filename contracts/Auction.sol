@@ -13,15 +13,15 @@ contract Auction {
         string host;
     }
     mapping(uint => Bid) bids; //出价情况
-    uint256[] public treeNumbers;
+    uint[] public treeNumbers;
     bool isFarmerGetMoney;
 
     constructor(address tc) public {
         treeCoin = TreeCoin(tc);
         //初始价格为树币的默认价格, 出价者为farmer
-        for(uint256 i = 0; i < treeCoin.totalSupply; i++) {
+        for(uint i = 0; i < treeCoin.totalSupply; i++) {
             treeNumbers.push(treeCoin.initTrcs[i].number);
-            bids[treeCoin.initTrcs[i].number] = new Bid(treeCoin.price, treeCoin.farmer, false, "");
+            bids[treeCoin.initTrcs[i].number] = Bid(treeCoin.price, treeCoin.farmer, false, "");
         }
     }
 
@@ -86,6 +86,10 @@ contract Auction {
     //竞价某编号的树币
     function bid(uint number) public free allowBid payable returns (bool){
         require(msg.value > bids[number].highestPrice);
+        //退款
+        if (bids[number].addr != treeCoin.farmer) {
+            address(bids[number]).transfer(bids[number].highestPrice);
+        }
         bids[number].highestPrice = msg.value;
         bids[number].addr = msg.sender;
         return true;
@@ -116,9 +120,43 @@ contract Auction {
         return true;
     }
 
-    //farmer 提款 //只能提取所有钱的90%, 剩下10%作为返利，每增加一人申诉退款，少提取2/果树量(最高100%)
     function getFarmerAmount() getMoney public returns (bool) {
-        //todo
+        //farmer 提款前提 不退款反馈多于退款反馈 只能提取未申诉退款钱的90%, 剩下10%作为未申诉退款返利
+        //judge 成功 获取10%返利 未judge 不能获取返利
+        //每增加一人申诉退款，不仅不能提取该树币的钱，且减少提取等量的钱
+        uint256 amount;
+        uint256 decreaseAmount;
+        if (!_isWithdraw() && msg.sender == treeCoin.farmer) {
+            for (uint i=0; i < treeNumbers.length; i++) {
+                if (!bids[treeNumbers[i]].isJudge || !bids[treeNumbers[i]].isWithdraw) {
+                    amount += bids[treeNumbers[i]].highestPrice * 0.9;
+                } else {
+                    decreaseAmount += bids[treeNumbers[i].highestPrice];
+                    }
+            }
+            if (amount > decreaseAmount) {
+                treeCoin.farmer.transfer(amount - decreaseAmount);
+            }
+        } else if (!_isWithdraw() && msg.sender != treeCoin.farmer) {
+            for (uint i=0; i < treeNumbers.length; i++) {
+                if(msg.sender == bids[treeNumbers[i]].addr) {
+                    if (bids[treeNumbers[i]].isJudge && !bids[treeNumbers[i]].isWithdraw) {
+                        msg.sender.transfer(bids[treeNumbers[i]].highestPrice*1.1);
+                        return true;
+                    }
+                }
+            }
+        } else if (_isWithdraw() && msg.sender != treeCoin.farmer) {
+            for (uint i=0; i < treeNumbers.length; i++) {
+                if(msg.sender == bids[treeNumbers[i]].addr) {
+                    if (bids[treeNumbers[i]].isJudge && bids[treeNumbers[i]].isWithdraw) {
+                        msg.sender.transfer(bids[treeNumbers[i]].highestPrice*2);
+                        return true;
+                    }
+                }
+            }
+        }
+                
         return true;
     }
 
@@ -137,10 +175,10 @@ contract Auction {
         uint unWithdrawCount = 0;
         uint withdrawCount = 0;
         for (uint i=0; i < treeNumbers.length; i++) {
-            if (bids[treeNumbers[i]].isJudge && bids[treeNumbers[i].isWithdraw]) {
+            if (bids[treeNumbers[i]].isJudge && bids[treeNumbers[i]].isWithdraw) {
                 withdrawCount ++;
             }
-            if (bids[treeNumbers[i]].isJudge && !bids[treeNumbers[i].isWithdraw]) {
+            if (bids[treeNumbers[i]].isJudge && !bids[treeNumbers[i]].isWithdraw) {
                 unWithdrawCount ++;
             }
         }
