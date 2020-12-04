@@ -20,11 +20,15 @@ contract Auction {
     uint32[] public treeNumbers;
     mapping(uint => Bid) bids; //出价情况
     
+    event ProcessEvent(uint256 _value);
+    event BidEvent(uint256 _value, address _addr);
+
     constructor(address tc) public {
         treeCoin = TreeCoin(tc);
         farmer = msg.sender;
         uint256 price = treeCoin.getPrice();
         treeNumbers = treeCoin.getInitTrcNumbers();
+        auctionTime = now;
         //初始价格为树币的默认价格, 出价者为farmer
         for(uint i = 0; i < treeNumbers.length; i++) {
             // treeNumbers.push(treeCoin.initTrcs[i].number);
@@ -65,7 +69,7 @@ contract Auction {
     //当前地址没有最高出价，允许再出价
     modifier allowBid() {
         bool isAllow = true;
-        for (uint i=0; i < treeNumbers.length; i++) {
+        for (uint i=0; i < total; i++) {
             if (msg.sender == bids[treeNumbers[i]].addr) {
                 isAllow = false;
                 continue;
@@ -77,7 +81,7 @@ contract Auction {
     }
 
     //查询当前项目阶段
-    function getProcess() public view returns (Process){
+    function getProcess() public returns (Process){
         if (now <= auctionTime + 3600 * 24 * 7) return Process.free;
         else if (now > auctionTime + 3600 * 24 * 7 && now <= auctionTime + 3600 * 24 * 10) return Process.addrConfirm;
         else if (now > auctionTime + 3600 * 24 * 10 && now <= auctionTime + 3600 * 24 * 24) return Process.bidsConfirm;

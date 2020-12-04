@@ -5,21 +5,25 @@ import "truffle/DeployedAddresses.sol";
 import "../contracts/TreeCoin.sol";
 import "../contracts/Auction.sol";
 
-contract TestMetacoin {
+contract TestAuction {
     function testInitialBalanceUsingDeployedContract() public {
         Auction meta = Auction(DeployedAddresses.Auction());
 
         Assert.equal(
             uint(16),
             meta.getBidsAddr().length,
-            "Owner should have 10000 MetaCoin initially"
+            "init bidAddr should be 16"
+        );
+
+        Assert.equal(
+            uint(0),
+            meta.getProcess(),
+            "current process should be free"
         );
     }
 
     function testInitialBalanceWithNewMetaCoin() public {
         Auction meta = Auction(DeployedAddresses.Auction());
-
-        uint expected = 0;
 
         Assert.equal(
             meta.getTreeCoins().length,

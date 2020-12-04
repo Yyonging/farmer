@@ -43,10 +43,10 @@ class BaseComponent extends React.Component {
       this.setState({addrs:addrs})
     }
   
-    async postBid(number) {
+    async postBid(number, value) {
       await this.connect();
       const {bid} = Block.auction.methods;
-      var isSucceess = await bid(number).call();
+      var isSucceess = await bid(number).send({from:Block.account, value:value*10**18});
       console.log("bid", isSucceess);
       if (isSucceess)　message.info("竞价成功！");
       else message.info("竞价失败！");    

@@ -4,7 +4,7 @@ import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/TreeCoin.sol";
 
-contract TestMetacoin {
+contract TestTreecoin {
     function testInitialBalanceUsingDeployedContract() public {
         TreeCoin meta = TreeCoin(DeployedAddresses.TreeCoin());
 

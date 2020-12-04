@@ -10,6 +10,7 @@ import {
   PieChartOutlined,
   UploadOutlined,
   BlockOutlined,
+  ReconciliationFilled,
 } from '@ant-design/icons';
 
 import { Form, Input, Select } from 'antd';
@@ -144,18 +145,26 @@ class InfiniteListExample extends BaseComponent {
       loading: false,
       hasMore: true,
     };
+    this.refInput = React.createRef();
   }
   
-    componentDidMount() {
+  componentDidMount() {
+    this.refreshProcess()
     this.getTcs();
     this.getAddrs();
     this.getHighest();
     }
 
   bidTrc = (number) => {
-    console.log(number);
-    message.info("InfiniteListExample click", number);
-    this.postBid(number)
+    console.log("bidTrc", this.refInput.current.value);
+    console.log("bidTrc", number);
+    this.postBid(parseInt(number), parseFloat(this.refInput.current.value))
+    this.getTcs();
+  }
+
+  changPrice = (e) => {
+    console.log(e.target.value);
+    this.refInput.current.value = e.target.value;
   }
 
   handleInfiniteOnLoad = () => {
@@ -196,7 +205,9 @@ class InfiniteListExample extends BaseComponent {
                 <div>
                   <p　className="ant-list-item-p"><strong>当前最高价</strong>: {this.state.hightests[index] / 10**18 + " ETH"}</p>
                   <p  className="ant-list-item-p"><strong>最高者地址</strong>: {this.state.addrs[index]}</p>
-                  {this.state.status === 4? <Button type="dashed" size="middle" onClick={this.bidTrc.bind(this, item)}>竞拍</Button>:
+                  <input type="text" ref={this.refInput} className="ant-list-item-p" 
+                    placeholder="出价(eth)" style={{width:"5em"}} defaultValue="0.1" onChange={this.changPrice.bind(this)} name="price"/>
+                  {this.state.status === '0'? <Button type="dashed" size="middle" onClick={this.bidTrc.bind(this, item)}>竞拍</Button>:
                     <Button type="dashed" size="middle" disabled>已结束</Button>
                   }
                   </div>
@@ -260,7 +271,7 @@ class SiderDemo extends React.Component {
           </div>
           <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
             <Menu.Item key="1" icon={<UserOutlined />} onClick={this.onClickItem.bind(this, 1)}>
-              我的果树
+              我的竞拍
             </Menu.Item>
             <Menu.Item key="2" icon={<PieChartOutlined/>} onClick={this.onClickItem.bind(this, 2)}>
               果树列表
