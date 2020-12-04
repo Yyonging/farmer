@@ -2,29 +2,28 @@ pragma solidity >=0.4.21 <0.7.0;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "../contracts/MetaCoin.sol";
+import "../contracts/TreeCoin.sol";
+import "../contracts/Auction.sol";
 
 contract TestMetacoin {
     function testInitialBalanceUsingDeployedContract() public {
-        MetaCoin meta = MetaCoin(DeployedAddresses.MetaCoin());
-
-        uint expected = 10000;
+        Auction meta = Auction(DeployedAddresses.Auction());
 
         Assert.equal(
-            meta.getBalance(msg.sender),
-            expected,
+            uint(16),
+            meta.getBidsAddr().length,
             "Owner should have 10000 MetaCoin initially"
         );
     }
 
     function testInitialBalanceWithNewMetaCoin() public {
-        MetaCoin meta = new MetaCoin();
+        Auction meta = Auction(DeployedAddresses.Auction());
 
-        uint expected = 10000;
+        uint expected = 0;
 
         Assert.equal(
-            meta.getBalance(address(this)),
-            expected,
+            meta.getTreeCoins().length,
+            uint(16),
             "Owner should have 10000 MetaCoin initially"
         );
     }

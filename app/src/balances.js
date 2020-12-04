@@ -1,7 +1,7 @@
 import React from 'react';
 import Block from './block';
-
-import { List, message, Avatar, Spin } from 'antd';
+import BaseComponent from './baseComponet';
+import { List, message, Avatar, Spin, Steps } from 'antd';
 import InfiniteScroll from 'react-infinite-scroller';
 
 import { Layout, Menu, Button, Card } from 'antd';
@@ -9,11 +9,13 @@ import {
   UserOutlined,
   PieChartOutlined,
   UploadOutlined,
+  BlockOutlined,
 } from '@ant-design/icons';
 
 import { Form, Input, Select } from 'antd';
 
 const { Header, Sider} = Layout;
+const { Step } = Steps;
 
 const { Option } = Select;
 const layout = {
@@ -31,68 +33,6 @@ const tailLayout = {
   },
 };
 
-
-
-class BaseComponent extends React.Component {
-
-  async connect() {
-    if (Block.meta == null) {
-      await Block.start();
-    }
-  }
-
-  async refreshProcess() {
-    await this.connect();
-    const {getProcess} = Block.meta.methods;
-    var res = await getProcess().call();
-    const processMap = {"0":"自由认领交易期", "1":"申诉期", "2":"项目已结算"};
-    console.log(processMap[res]);
-    this.setState({status:processMap[res]});
-  }
-
-  async refreshStatus() {
-    await this.connect();
-    const {getStatus} = Block.meta.methods;
-    var balanceList = await getStatus().call();
-    console.log('refreshStatus: '+ balanceList)
-    var newBalanceList = balanceList.map(function(item, index) {return {key:index+1, value:item}});
-    this.setState({balanceList:newBalanceList})
-  }
-
-  async refreshBalance() {
-    await this.connect()
-    const {balanceOf} = Block.meta.methods;
-    const balance = await balanceOf(Block.account).call();
-    this.setState({balance: balance});
-    if (balance !== "0") {
-      const { getBalance } = Block.meta.methods;
-      const balanceList = await getBalance(Block.account).call();
-      console.log(balanceList);
-      var balanceListShow = balanceList.filter(item => item!=="0");
-      this.setState({balanceList:balanceListShow});
-    }
-  }
-
-  async transfer(receiver, amount) {
-    await this.connect();
-    this.setState({status:"Initiating transaction... (please wait)"})
-    message.info(this.state.status);
-    const { transfer } = Block.meta.methods;
-    const success = await transfer(receiver, amount).send({ from: Block.account });
-    console.log(success);
-    this.setState({status:"Transaction complete!"});
-    message.info(this.state.status);
-  }
-
-  async buy(number) {
-    await this.connect();
-    console.log(number);
-    const {buyTrc} = Block.meta.methods;
-    const success = await buyTrc(number).send({from: Block.account, value:10**17});
-    console.log("buy", success);
-  }
-
-}
 
 class Demo extends BaseComponent {
   constructor(props) {
@@ -174,7 +114,7 @@ class MyCard extends BaseComponent {
 
   render() {
     return (
-      <Card title="我的果树信息">
+      <Card title="我的竞拍">
       <Card type="inner" title="果树数量" >
         <strong>{this.state.balance}</strong>
       </Card>
@@ -193,37 +133,37 @@ class MyCard extends BaseComponent {
 }
 
 class InfiniteListExample extends BaseComponent {
-  state = {
-    balanceList:[],
-    loading: false,
-    hasMore: true,
-  };
-
-  async refreshStatus() {
-    await this.connect();
-    const {getStatus} = Block.meta.methods;
-    var balanceList = await getStatus().call();
-    console.log('refreshStatus: '+ balanceList)
-    var newBalanceList = balanceList.map(function(item, index) {return {key:index+1, value:item}});
-    this.setState({balanceList:newBalanceList})
+  constructor(props) {
+    super(props);
+    this.state = {
+      tcs:[],
+      hightests:[],
+      addrs:[],
+      data:[],
+      status:4,
+      loading: false,
+      hasMore: true,
+    };
   }
   
-  componentDidMount() {
-    this.refreshStatus();
-  }
+    componentDidMount() {
+    this.getTcs();
+    this.getAddrs();
+    this.getHighest();
+    }
 
-  buyTrc(key) {
-    console.log(key);
-    message.info("ss"+key);
-    this.buy(key);
+  bidTrc = (number) => {
+    console.log(number);
+    message.info("InfiniteListExample click", number);
+    this.postBid(number)
   }
 
   handleInfiniteOnLoad = () => {
-    let { balanceList } = this.state;
+    let { tcs } = this.state;
     this.setState({
       loading: true,
     });
-    if (balanceList.length > 15) {
+    if (tcs.length > 15) {
       message.warning('已经到底了');
       this.setState({
         hasMore: false,
@@ -244,18 +184,20 @@ class InfiniteListExample extends BaseComponent {
           useWindow={false}
         >
           <List
-            dataSource={this.state.balanceList}
-            renderItem={item => (
-              <List.Item key={item.key}>
+            dataSource={this.state.tcs}
+            renderItem={(item, index) => (
+              <List.Item key={index}>
                 <List.Item.Meta
                   avatar={
                     <Avatar src="logo192.png" />
                   }
-                  title={<a href="">{"果树编号："+item.key}</a>}
+                  title={<a>{"果树编号："+item}</a>}
                 />
-                <div>{
-                    item.value === "1"? <Button type="dashed" size="middle" onClick={()=>this.buyTrc(item.key)}>认领</Button>:
-                    <Button type="dashed" size="middle" disabled>已认领</Button>
+                <div>
+                  <p　className="ant-list-item-p"><strong>当前最高价</strong>: {this.state.hightests[index] / 10**18 + " ETH"}</p>
+                  <p  className="ant-list-item-p"><strong>最高者地址</strong>: {this.state.addrs[index]}</p>
+                  {this.state.status === 4? <Button type="dashed" size="middle" onClick={this.bidTrc.bind(this, item)}>竞拍</Button>:
+                    <Button type="dashed" size="middle" disabled>已结束</Button>
                   }
                   </div>
               </List.Item>
@@ -273,6 +215,26 @@ class InfiniteListExample extends BaseComponent {
   }
 }
 
+class MySteps extends BaseComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      status:0, 
+      processMap:["自由竞拍期", "地址确认期", "货物交割期", "确认申诉期", "结算期"]
+    }
+  }
+
+
+  componentDidMount() {
+    this.refreshProcess()
+  }
+  render() {
+    return (
+    <Steps current={parseInt(this.state.status)}>
+      {this.state.processMap.map(item=><Step title={item} key={item}/>)}
+    </Steps>)
+  }
+}
 class SiderDemo extends React.Component {
   state = {
     collapsed: false,
@@ -285,8 +247,8 @@ class SiderDemo extends React.Component {
     });
   };
 
-  onClickItem(index) {
-    console.log(this.state);
+  onClickItem = (index) => {
+    console.log("click item", index);
     this.setState({current:{key:index}});
   }
 
@@ -294,22 +256,24 @@ class SiderDemo extends React.Component {
     return (
       <Layout>
         <Sider trigger={null} collapsible collapsed={this.state.collapsed}>
-          <div className="logo" ><h1 >果树Token化研究应用</h1></div>
+          <div className="logo"><h1>果树Token化研究应用</h1>
+          </div>
           <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
-            <Menu.Item key="1" icon={<UserOutlined />} onClick={()=>this.onClickItem(1)}>
+            <Menu.Item key="1" icon={<UserOutlined />} onClick={this.onClickItem.bind(this, 1)}>
               我的果树
             </Menu.Item>
-            <Menu.Item key="2" icon={<PieChartOutlined/>} onClick={()=>this.onClickItem(2)}>
+            <Menu.Item key="2" icon={<PieChartOutlined/>} onClick={this.onClickItem.bind(this, 2)}>
               果树列表
             </Menu.Item>
-            <Menu.Item key="3" icon={<UploadOutlined />} onClick={()=>this.onClickItem(3)}>
+            <Menu.Item key="3" icon={<UploadOutlined />} onClick={this.onClickItem.bind(this, 3)}>
               果树转让
             </Menu.Item>
           </Menu>
         </Sider>
         <Layout className="site-layout">
           <Header className="site-layout-background" style={{ padding: 0 }}>
-            <h1 style={{width: "100%", textAlign:"center"}}>果树Token化研究应用</h1>
+            <h1>果树Token化研究应用</h1>
+            <MySteps/>
           </Header>
           {
             (this.state.current.key === 1) && <MyCard/> ||

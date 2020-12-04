@@ -98,3 +98,37 @@ html,body,#root{
 #components-form-demo-control-ref .ant-btn {
   margin-right: 8px;
 }
+
+
+.ant-layout-header>h1{
+  width: 100%;
+  text-align: center;
+  margin-top: -0.5em;
+  margin-bottom: -1em;
+  font-size: 2em;
+  height: 80px;
+}
+
+.ant-steps{
+  line-height:1;
+  width: 60%;
+  margin-left:20%;
+
+}
+.ant-steps-item-icon {
+  width: 20px;
+  height: 20px;
+  margin: 4px 4px 0 0;
+  font-size: 10px;
+  line-height: 20px;
+}
+
+.ant-steps-item-title {
+  font-size: 8px;
+}
+
+
+.ant-list-item-p {
+  display: inline;
+  margin-right: 1em;
+}

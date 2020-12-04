@@ -3,11 +3,11 @@ pragma solidity >=0.4.22 <0.7.0;
 contract TreeCoin {
 	string public name = "TreeCoin"; //树币
 	string public symbol = "TRC";
-	uint constant public totalSupply = 16;
-	uint256 price = 10**17; //最低价格
+	uint constant totalSupply = 16;
+	uint256 public price = 10**17; //最低价格
 	address public farmer;
 	struct Trc {
-		uint number; //果树编号 可以扩展更多的描述信息
+		uint32 number; //果树编号 可以扩展更多的描述信息
 	}
 	Trc[] public initTrcs;
 	enum Process { free, Appeal, end }
@@ -19,14 +19,17 @@ contract TreeCoin {
 	event Approval(address indexed _from, address indexed _to, uint256 _value);
 
 	constructor() public {
-		// for(uint i = 1; i <= totalSupply; i++) {
-		// 	initTrcs.push(Trc(i));
-		// }
+		for(uint32 i = 1; i <= totalSupply; i++) {
+			initTrcs.push(Trc(i));
+		}
 		//允许自定义编号
-		initTrcs = [Trc(6), Trc(66), Trc(666), Trc(6666),
-			Trc(66666), Trc(666666), Trc(6666666), Trc(66666666),
-			Trc(8), Trc(88), Trc(888), Trc(8888),
-			Trc(88888), Trc(888888), Trc(8888888), Trc(88888888)];
+		// for(uint i = 0; i < 2; i++) {
+		// 	initTrcs.push(Trc(numbers[i]));
+		// }
+		// initTrcs = [Trc(6), Trc(66), Trc(666), Trc(6666),
+		// 	Trc(66666), Trc(666666), Trc(6666666), Trc(66666666),
+		// 	Trc(8), Trc(88), Trc(888), Trc(8888),
+		// 	Trc(88888), Trc(888888), Trc(8888888), Trc(88888888)];
 		farmer = tx.origin;
 		balances[farmer] = initTrcs;
 	}
@@ -34,6 +37,20 @@ contract TreeCoin {
 	//余额
 	function balanceOf(address _owner) public view returns (uint256 balance){
 		return balances[_owner].length;
+	}
+
+	function getTotal() public view returns (uint) {
+		return totalSupply;
+	}
+
+	function getPrice() public view returns (uint256) {
+		return price;
+	}
+
+	function getInitTrcNumbers() public view returns(uint32[totalSupply] memory numbers) {
+		for(uint i = 0; i < totalSupply; i++) {
+			numbers[i] = (initTrcs[i].number);
+		}
 	}
 
 	function transfer(address _to, uint256 _value) public returns (bool success) {

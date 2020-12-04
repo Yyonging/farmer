@@ -1,9 +1,11 @@
-import metaCoinArtifact from "./MetaCoin.json";
+import metaCoinArtifact from "./TreeCoin.json";
+import auctionArtifact from "./Auction.json";
 
 const Block = {
     web3: null,
     account: null,
     meta: null,
+    auction: null,
 
     start: async function() {
         const { web3 } = this;
@@ -12,11 +14,15 @@ const Block = {
           // get contract instance
           const networkId = await web3.eth.net.getId();
           const deployedNetwork = metaCoinArtifact.networks[networkId];
+          const auctionArtifactNetWork = auctionArtifact.networks[networkId];
           this.meta = new web3.eth.Contract(
             metaCoinArtifact.abi,
             deployedNetwork.address,
           );
-    
+          this.auction = new web3.eth.Contract(
+            auctionArtifact.abi,
+            auctionArtifactNetWork.address,
+          );
           // get accounts
           const accounts = await web3.eth.getAccounts();
           this.account = accounts[0];
