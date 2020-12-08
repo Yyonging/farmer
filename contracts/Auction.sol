@@ -21,6 +21,7 @@ contract Auction {
     mapping(uint => Bid) bids; //出价情况
     
     event ProcessEvent(uint256 _value);
+    event LogString(string _value);
     event BidEvent(uint256 _value, address _addr);
 
     constructor(address tc) public {
@@ -44,8 +45,8 @@ contract Auction {
     }
     //货物地址确认期
     modifier addressConfirm() {
-        require(now > auctionTime + 3600 * 24 * 7);
-        require(now <= auctionTime + 3600 * 24 * 10);
+        // require(now > auctionTime + 3600 * 24 * 7);
+        // require(now <= auctionTime + 3600 * 24 * 10);
         _;
     }
     //货物交割期
@@ -103,6 +104,16 @@ contract Auction {
         }
     }
 
+    //查询当前账户的出价信息
+    function getBidHighInfo() public view returns(uint256, uint32, string memory, address) {
+        for (uint i=0; i < total; i++) {
+            if (msg.sender == bids[treeNumbers[i]].addr) {
+                return (bids[treeNumbers[i]].highestPrice, treeNumbers[i], bids[treeNumbers[i]].host, msg.sender);
+            }
+        }
+        return (0,0,"", msg.sender);
+    }
+
     //竞价某编号的树币
     function bid(uint number) public free allowBid payable returns (bool){
         require(msg.value > bids[number].highestPrice);
@@ -117,7 +128,8 @@ contract Auction {
 
     //填写货物地址
     function addAddr(uint number, string memory host) public addressConfirm returns (bool){
-        require(msg.sender == bids[number].addr);
+        // require(msg.sender == bids[number].addr);
+        emit LogString(host);
         bids[number].host = host;
         return true;
     }

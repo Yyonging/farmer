@@ -1,6 +1,7 @@
 import React from 'react';
 import Block from './block';
 import { message } from 'antd';
+import { ArrowsAltOutlined } from '@ant-design/icons';
 
 class BaseComponent extends React.Component {
 
@@ -18,7 +19,7 @@ class BaseComponent extends React.Component {
       this.setState({status:res});
     }
   
-    async getHighest(){
+    async getHighest() {
       await this.connect()
       const {getBidsHighest} = Block.auction.methods;
       var hightests = await getBidsHighest().call();
@@ -51,10 +52,23 @@ class BaseComponent extends React.Component {
       if (isSucceess)　message.info("竞价成功！");
       else message.info("竞价失败！");    
     }
+    
+    async getBidInfo() {
+      await this.connect();
+      const {getBidHighInfo} = Block.auction.methods;
+      console.log("account", Block.account);
+      var res = await getBidHighInfo().call({from:Block.account});
+      this.setState({price: res[0], number:res[1], host:res[2], account:res[3]})
+      console.log("getBidInfo", res)
+    }
   
-  
-  
-  
+    async recordAddr(number, addr) {
+      await this.connect();
+      const {addAddr} = Block.auction.methods;
+      var isSucceess = await addAddr(number, addr).call({from:Block.account});
+      console.log("record addr", isSucceess);
+    }
+
     async refreshStatus() {
       await this.connect();
       const {getStatus} = Block.meta.methods;

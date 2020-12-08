@@ -103,31 +103,52 @@ class MyCard extends BaseComponent {
   constructor(props) {
     super(props);
     this.state = {
-      balance: 0,
-      balanceList: []
     }
-    this.refreshBalance = this.refreshBalance.bind(this);
+    this.refInput = React.createRef();
+  }
+
+  changeAddr = (e) => {
+    this.refInput.current.value = e.target.value;
+  }
+
+  addAddr = () => {
+    let addr = this.refInput.current.value;
+    console.log("add addr", this.state.number, addr);
+    this.recordAddr(this.state.number, addr)
   }
 
   componentDidMount() {
-    this.refreshBalance();
+    this.getBidInfo();
+    this.refreshProcess();
   }
 
   render() {
     return (
       <Card title="我的竞拍">
-      <Card type="inner" title="果树数量" >
-        <strong>{this.state.balance}</strong>
-      </Card>
-      {this.state.balance !== 0 &&
+        <Card type="inner" title="我的地址" >
+          <strong>{this.state.account}</strong>
+        </Card>
+        <Card type="inner" title="我的出价" >
+          <strong>{this.state.price / 10**18} ETH</strong>
+        </Card>
           <Card
             style={{ marginTop: 16 }}
             type="inner"
             title="果树编号"
           >
-            {this.state.balanceList.toString()}
+            {this.state.number === '0'?"无":this.state.number}
           </Card>
-      }
+          {this.state.status === '0' &&
+            <Card
+              style={{ marginTop: 16 }}
+              type="inner"
+              title="邮寄地址"
+            >
+              <input type="text"　placeholder={this.state.host}　ref={this.refInput} onChange={this.changeAddr.bind(this)}></input>
+              <Button type="dashed" size="middle" onClick={this.addAddr.bind(this)}>确定</Button>
+
+            </Card>
+          }
     </Card>
     );
   }

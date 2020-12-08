@@ -26,8 +26,9 @@ const Block = {
           // get accounts
           const accounts = await web3.eth.getAccounts();
           this.account = accounts[0];
+          console.log("deploy network", auctionArtifactNetWork.address);
           
-          console.log("start: " + this.account);
+          console.log("start: ", this.account);
         } catch (error) {
           console.error("Could not connect to contract or chain.");
         }
