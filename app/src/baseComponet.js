@@ -13,10 +13,11 @@ class BaseComponent extends React.Component {
   
     async refreshProcess() {
       await this.connect();
+      let t = Math.ceil(new Date().valueOf() / 1000);
       const {getProcess} = Block.auction.methods;
-      var res = await getProcess().call();
-      console.log("process status:", res)
-      this.setState({status:res});
+      var res = await getProcess(t).call();
+      console.log("refreshProcess status:", t, res)
+      this.setState({status:Number(res)}, ()=>{console.log("MySteps", this.state)});
     }
   
     async getHighest() {
@@ -65,9 +66,45 @@ class BaseComponent extends React.Component {
     async recordAddr(number, addr) {
       await this.connect();
       const {addAddr} = Block.auction.methods;
-      var isSucceess = await addAddr(number, addr).call({from:Block.account});
+      var isSucceess = await addAddr(number, addr).send({from:Block.account});
       console.log("record addr", isSucceess);
     }
+
+    async vote(isWithdraw) {
+      await this.connect();
+      let number = this.state.number;
+      let value = this.state.price;
+      const {payForWithdraw} = Block.auction.methods;
+      var res = await payForWithdraw(number, isWithdraw).send({from:Block.account, value:value})
+      console.log("vote", res)
+    }
+
+    async getVote() {
+      await this.connect();
+      let t = Math.ceil(new Date().valueOf() / 1000);
+      const {getProcess} = Block.auction.methods;
+      let res = Number(await getProcess(t).call());
+      this.setState({status:res})
+      console.log("getVote process", t, res);
+      if (res === 3) {
+        const {getBidHighInfo} = Block.auction.methods;
+        res = await getBidHighInfo().call({from:Block.account});
+        this.setState({price: res[0], number:parseInt(res[1]), host:res[2], account:res[3]})
+        console.log("getBidHighInfo res", res);
+        if (res[1] !== '0') {
+          let number = Number(res[1])
+          const {getPayInfo} = Block.auction.methods;
+          res = await getPayInfo(number).call({from:Block.account})
+          console.log("getPayInfo", res);
+          this.setState({isVote:res})
+        } else {
+            this.setState({isVote:3}) //没有竞拍
+        }
+      } else {
+        this.setState({isVote:2}) //非申诉期
+      }
+    }
+
 
     async refreshStatus() {
       await this.connect();

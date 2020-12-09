@@ -16,8 +16,8 @@ contract TestAuction {
         );
 
         Assert.equal(
-            uint(0),
-            meta.getProcess(),
+            false,
+            meta.getPayInfo(uint(1)),
             "current process should be free"
         );
     }

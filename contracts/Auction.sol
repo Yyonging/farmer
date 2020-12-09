@@ -6,6 +6,8 @@ contract Auction {
     TreeCoin treeCoin;
     uint public auctionTime; //竞价开启时间
     uint constant total = 16;
+    // uint constant day = 3600 * 24;》
+    uint constant day = 3;
     bool isFarmerGetMoney;
     struct Bid {
         uint256 highestPrice; //最高出价
@@ -40,30 +42,30 @@ contract Auction {
     //定义项目进展阶段
     //自由竞拍期
     modifier free() {
-        require(now <= auctionTime + 3600 * 24 * 7);
+        require(now <= auctionTime + day * 7);
         _;
     }
     //货物地址确认期
     modifier addressConfirm() {
-        // require(now > auctionTime + 3600 * 24 * 7);
-        // require(now <= auctionTime + 3600 * 24 * 10);
+        require(now > auctionTime + day * 7);
+        require(now <= auctionTime + day * 10);
         _;
     }
     //货物交割期
     modifier bidsConfirm() {
-        require(now > auctionTime + 3600 * 24 * 10);
-        require(now <= auctionTime + 3600 * 24 * 24);
+        require(now > auctionTime + day * 10);
+        require(now <= auctionTime + day * 24);
         _;
     }
     //确认申诉期
     modifier withdrawConfirm() {
-        require(now > auctionTime + 3600 * 24 * 24);
-        require(now <= auctionTime + 3600 * 24 * 30);
+        require(now > auctionTime + day * 24);
+        require(now <= auctionTime + day * 30);
         _;
     }
     //提款结算期
     modifier getMoney() {
-        require(now > auctionTime + 3600 * 24 * 30);
+        require(now > auctionTime + day * 30);
         _;
     }
 
@@ -82,11 +84,11 @@ contract Auction {
     }
 
     //查询当前项目阶段
-    function getProcess() public returns (Process){
-        if (now <= auctionTime + 3600 * 24 * 7) return Process.free;
-        else if (now > auctionTime + 3600 * 24 * 7 && now <= auctionTime + 3600 * 24 * 10) return Process.addrConfirm;
-        else if (now > auctionTime + 3600 * 24 * 10 && now <= auctionTime + 3600 * 24 * 24) return Process.bidsConfirm;
-        else if (now > auctionTime + 3600 * 24 * 24 && now <= auctionTime + 3600 * 24 * 30) return Process.withdrawConfirm;
+    function getProcess(uint256 time) public returns (Process){
+        if (time <= auctionTime + day * 7) return Process.free;
+        else if (time > auctionTime + day * 7 && time <= auctionTime + day * 10) return Process.addrConfirm;
+        else if (time > auctionTime + day * 10 && time <= auctionTime + day * 24) return Process.bidsConfirm;
+        else if (time > auctionTime + day * 24 && time <= auctionTime + day * 30) return Process.withdrawConfirm;
         return Process.end;
     }
 
@@ -128,7 +130,7 @@ contract Auction {
 
     //填写货物地址
     function addAddr(uint number, string memory host) public addressConfirm returns (bool){
-        // require(msg.sender == bids[number].addr);
+        require(msg.sender == bids[number].addr);
         emit LogString(host);
         bids[number].host = host;
         return true;
@@ -150,6 +152,12 @@ contract Auction {
         bids[number].isWithdraw = isWithdraw;
         bids[number].isJudge = true;
         return true;
+    }
+
+    //查询是否已经申诉或者确认收货
+    function getPayInfo(uint number) public view returns(bool) {
+        require(msg.sender == bids[number].addr);
+        return bids[number].isJudge;
     }
 
     function getAmount() getMoney public returns (bool) {

@@ -138,17 +138,22 @@ class MyCard extends BaseComponent {
           >
             {this.state.number === '0'?"无":this.state.number}
           </Card>
-          {this.state.status === '0' &&
             <Card
               style={{ marginTop: 16 }}
               type="inner"
-              title="邮寄地址"
+              title="邮寄地址(地址确认期可填写)"
             >
-              <input type="text"　placeholder={this.state.host}　ref={this.refInput} onChange={this.changeAddr.bind(this)}></input>
+              <input style={{marginRight:"10px"}} type="text"　placeholder={this.state.host}　ref={this.refInput} onChange={this.changeAddr.bind(this)}></input>
               <Button type="dashed" size="middle" onClick={this.addAddr.bind(this)}>确定</Button>
 
             </Card>
-          }
+            <Card
+              style={{ marginTop: 16 }}
+                type="inner"
+                title="收益(结算期可提取)"
+            >
+              <Button type="primary" size="middle" onClick={()=>{}}>提取收益</Button>
+            </Card>
     </Card>
     );
   }
@@ -228,7 +233,7 @@ class InfiniteListExample extends BaseComponent {
                   <p  className="ant-list-item-p"><strong>最高者地址</strong>: {this.state.addrs[index]}</p>
                   <input type="text" ref={this.refInput} className="ant-list-item-p" 
                     placeholder="出价(eth)" style={{width:"5em"}} defaultValue="0.1" onChange={this.changPrice.bind(this)} name="price"/>
-                  {this.state.status === '0'? <Button type="dashed" size="middle" onClick={this.bidTrc.bind(this, item)}>竞拍</Button>:
+                  {this.state.status === 0? <Button type="dashed" size="middle" onClick={this.bidTrc.bind(this, item)}>竞拍</Button>:
                     <Button type="dashed" size="middle" disabled>已结束</Button>
                   }
                   </div>
@@ -258,13 +263,55 @@ class MySteps extends BaseComponent {
 
 
   componentDidMount() {
-    this.refreshProcess()
+    this.refreshProcess();
   }
   render() {
     return (
     <Steps current={parseInt(this.state.status)}>
       {this.state.processMap.map(item=><Step title={item} key={item}/>)}
     </Steps>)
+  }
+}
+
+class WithdrawOrConfirm extends BaseComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      status:1, 
+      isVote:4, 
+    }
+  }
+  componentDidMount() {
+    this.getVote();
+  }
+
+  onClickItem　= (isWithdraw) => {
+    console.log("WithdrawOrConfirm", this.state);
+    if(this.state.status != 3) {
+      message.warning("当前不是申诉期！");
+    }
+    else if(this.state.isVote === 3) {
+      message.warning("您没有竞拍无法申诉或者确认收货");
+    } else if(this.state.isVote === 4) {
+      message.warning("系统暂时无法获取您的竞拍信息！");
+    } else{
+      this.vote(isWithdraw);
+    }
+  }
+  render() {
+    return (
+      <div>
+        <p　style={{width:"50%", marginLeft:"22%", marginTop:"10%"}}>确认申诉期,竞拍成功的您可以选择申诉或者确认收货,　如果选择申诉，并且大多数人也选择申诉时，farmer将得到无法获得你所竞拍果树所花费的奖励。
+          选择确认收货，并且大多数人也选择确认收货时，farmer 能提取竞拍奖励，您也将获取竞拍花费的10%的返利。
+        </p>
+      <Button type="primary" htmlType="submit" style={{marginLeft:"30%", marginTop:"50px"}} onClick={this.onClickItem.bind(this, false)}>
+      申诉投票
+    </Button>
+    <Button type="primary" htmlType="submit" style={{marginLeft:"10%"}} onClick={this.onClickItem.bind(this, true)} >
+          确认收货
+    </Button>
+    </div>
+    )
   }
 }
 class SiderDemo extends React.Component {
@@ -300,6 +347,9 @@ class SiderDemo extends React.Component {
             <Menu.Item key="3" icon={<UploadOutlined />} onClick={this.onClickItem.bind(this, 3)}>
               果树转让
             </Menu.Item>
+            <Menu.Item key="４" icon={<UploadOutlined />} onClick={this.onClickItem.bind(this, 4)}>
+              申诉or确认
+            </Menu.Item>
           </Menu>
         </Sider>
         <Layout className="site-layout">
@@ -316,13 +366,32 @@ class SiderDemo extends React.Component {
               minHeight: 280,
               height: "100%",
             }}></InfiniteListExample> ) || 
-            (this.state.current.key === 3 && <Demo/>)
+            (this.state.current.key === 3 && <Demo/>) ||
+            (this.state.current.key === 4 && <WithdrawOrConfirm/>)
           }
         </Layout>
       </Layout>
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class ProcessStatus extends BaseComponent {
@@ -332,7 +401,6 @@ class ProcessStatus extends BaseComponent {
       status: "申诉期"
     }
     this.refreshProcess = this.refreshProcess.bind(this);
-    console.log('enter constructor: ' + props);
   }
 
   async refreshProcess() {
@@ -340,7 +408,7 @@ class ProcessStatus extends BaseComponent {
     const {getProcess} = Block.meta.methods;
     var res = await getProcess().call();
     const processMap = {"0":"自由认领交易期", "1":"申诉期", "2":"项目已结算"};
-    console.log(processMap[res]);
+    console.log("ProcessStatus", processMap[res]);
     this.setState({status:processMap[res]});
   }
 
