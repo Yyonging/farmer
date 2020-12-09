@@ -6,8 +6,8 @@ contract Auction {
     TreeCoin treeCoin;
     uint public auctionTime; //竞价开启时间
     uint constant total = 16;
-    // uint constant day = 3600 * 24;》
-    uint constant day = 3;
+    uint constant day = 3600 * 24;
+    // uint constant day = 3;
     bool isFarmerGetMoney;
     struct Bid {
         uint256 highestPrice; //最高出价
@@ -84,7 +84,7 @@ contract Auction {
     }
 
     //查询当前项目阶段
-    function getProcess(uint256 time) public returns (Process){
+    function getProcess(uint256 time) public view returns (Process){
         if (time <= auctionTime + day * 7) return Process.free;
         else if (time > auctionTime + day * 7 && time <= auctionTime + day * 10) return Process.addrConfirm;
         else if (time > auctionTime + day * 10 && time <= auctionTime + day * 24) return Process.bidsConfirm;
@@ -136,13 +136,11 @@ contract Auction {
         return true;
     }
 
-    //farmer 查询所有树币得主地址
-    // function getAddrs() public bidsConfirm returns (string[] memory highest){
-    //     require(msg.sender == farmer);
-    //     for (uint i=0; i < treeNumbers.length; i++) {
-    //         highest[i] = bids[treeNumbers[i]].host;
-    //     }
-    // }
+    //farmer 根据编号查询树币得主地址
+    function getAddrs(uint number) public bidsConfirm view returns (string memory highest){
+        require(msg.sender == farmer);
+        highest = bids[number].host;
+    }
     
     //竞价者申诉期申诉 或者确认收货
     function payForWithdraw(uint number, bool isWithdraw) withdrawConfirm public payable returns(bool) {
@@ -161,42 +159,10 @@ contract Auction {
     }
 
     function getAmount() getMoney public returns (bool) {
-        //farmer 提款前提 不退款反馈多于退款反馈 只能提取未申诉退款钱的90%, 剩下10%作为未申诉退款返利
-        //judge 成功 获取10%返利 未judge 不能获取返利
-        //每增加一人申诉退款，不仅不能提取该树币的钱，且减少提取等量的钱
-        uint256 amount;
-        uint256 decreaseAmount;
-        if (!_isWithdraw() && (msg.sender == farmer)) {
-            for (uint i=0; i < treeNumbers.length; i++) {
-                if (!bids[treeNumbers[i]].isJudge || !bids[treeNumbers[i]].isWithdraw) {
-                    amount += bids[treeNumbers[i]].highestPrice * 9 / 10;
-                } else {
-                    decreaseAmount += bids[treeNumbers[i]].highestPrice;
-                    }
-            }
-            if (amount > decreaseAmount) {
-                msg.sender.transfer(amount - decreaseAmount);
-            }
-        } else if (!_isWithdraw() && (msg.sender != farmer)) {
-            for (uint i=0; i < treeNumbers.length; i++) {
-                if(msg.sender == bids[treeNumbers[i]].addr) {
-                    if (bids[treeNumbers[i]].isJudge && !bids[treeNumbers[i]].isWithdraw) {
-                        msg.sender.transfer(bids[treeNumbers[i]].highestPrice*11 / 10);
-                        return true;
-                    }
-                }
-            }
-        } else if (_isWithdraw() && (msg.sender != farmer)) {
-            for (uint i=0; i < treeNumbers.length; i++) {
-                if(msg.sender == bids[treeNumbers[i]].addr) {
-                    if (bids[treeNumbers[i]].isJudge && bids[treeNumbers[i]].isWithdraw) {
-                        msg.sender.transfer(bids[treeNumbers[i]].highestPrice*2);
-                        return true;
-                    }
-                }
-            }
+        uint256 amount = queryAmount();
+        if (amount > 0) {
+            msg.sender.transfer(amount);
         }
-                
         return true;
     }
 
@@ -218,5 +184,48 @@ contract Auction {
     //获取所有树币的编号
     function getTreeCoins() public view returns (uint32[] memory) {
         return treeNumbers; 
+    }
+
+    //预估收益
+    function queryAmount() public getMoney view returns (uint256) {
+        //farmer 提款前提 不退款反馈多于退款反馈 只能提取未申诉退款钱的90%, 剩下10%作为未申诉退款返利
+        //judge 成功 获取10%返利 未judge 不能获取返利
+        //每增加一人申诉退款，不仅不能提取该树币的钱，且减少提取等量的钱
+        uint256 amount;
+        uint256 decreaseAmount;
+        if (!_isWithdraw() && (msg.sender == farmer)) {
+            for (uint i=0; i < treeNumbers.length; i++) {
+                if (!bids[treeNumbers[i]].isJudge || !bids[treeNumbers[i]].isWithdraw) {
+                    amount += bids[treeNumbers[i]].highestPrice * 9 / 10;
+                } else {
+                    decreaseAmount += bids[treeNumbers[i]].highestPrice;
+                    }
+            }
+            if (amount > decreaseAmount) {
+                return (amount - decreaseAmount);
+                // msg.sender.transfer(amount - decreaseAmount);
+            }
+        } else if (!_isWithdraw() && (msg.sender != farmer)) {
+            for (uint i=0; i < treeNumbers.length; i++) {
+                if(msg.sender == bids[treeNumbers[i]].addr) {
+                    if (bids[treeNumbers[i]].isJudge && !bids[treeNumbers[i]].isWithdraw) {
+                        return (bids[treeNumbers[i]].highestPrice*11 / 10);
+                        // msg.sender.transfer(bids[treeNumbers[i]].highestPrice*11 / 10);
+                        // return true;
+                    }
+                }
+            }
+        } else if (_isWithdraw() && (msg.sender != farmer)) {
+            for (uint i=0; i < treeNumbers.length; i++) {
+                if(msg.sender == bids[treeNumbers[i]].addr) {
+                    if (bids[treeNumbers[i]].isJudge && bids[treeNumbers[i]].isWithdraw) {
+                        return (bids[treeNumbers[i]].highestPrice*2);
+                        // msg.sender.transfer(bids[treeNumbers[i]].highestPrice*2);
+                        // return true;
+                    }
+                }
+            }
+        } 
+        return 0;
     }
 }

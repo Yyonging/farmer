@@ -9,8 +9,7 @@ import {
   UserOutlined,
   PieChartOutlined,
   UploadOutlined,
-  BlockOutlined,
-  ReconciliationFilled,
+  TeamOutlined,
 } from '@ant-design/icons';
 
 import { Form, Input, Select } from 'antd';
@@ -344,7 +343,7 @@ class SiderDemo extends React.Component {
             <Menu.Item key="2" icon={<PieChartOutlined/>} onClick={this.onClickItem.bind(this, 2)}>
               果树列表
             </Menu.Item>
-            <Menu.Item key="3" icon={<UploadOutlined />} onClick={this.onClickItem.bind(this, 3)}>
+            <Menu.Item key="3" icon={<TeamOutlined />} onClick={this.onClickItem.bind(this, 3)}>
               果树转让
             </Menu.Item>
             <Menu.Item key="４" icon={<UploadOutlined />} onClick={this.onClickItem.bind(this, 4)}>
