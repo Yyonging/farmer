@@ -35,15 +35,22 @@ const tailLayout = {
 
 
 class Demo extends BaseComponent {
+  formRef = React.createRef();
+
   constructor(props) {
     super(props);
     this.onFinish = this.onFinish.bind(this);
     this.state = {
       balanceList:[],
-      status:""
+      status:"",
+      host:"",
+      addr:"",
     }
   }
 
+  onNumberChange = (value) => {
+    this.queryAddrs(value);
+  }
 
   onFinish = (values) => {
     this.transfer(values.address, values.number);
@@ -57,7 +64,7 @@ class Demo extends BaseComponent {
   render() {
     return (
       <div>
-      <Form {...layout} name="control-ref" onFinish={this.onFinish} style={{margin:70}}>
+      <Form {...layout} name="control-ref" onFinish={this.onFinish} style={{margin:70}} ref={this.formRef}>
         <Form.Item
           name="address"
           label="区块链地址"
@@ -67,7 +74,18 @@ class Demo extends BaseComponent {
             },
           ]} style={{width:"90%"}}
         >
-          <Input placeholder="eg.0xc1C24A14cD93A4c96678e2d85F17a26Efb12D37e"/>
+          <Input placeholder={this.state.addr} disabled/>
+        </Form.Item>
+        <Form.Item
+          name="addr"
+          label="邮寄地址"
+          rules={[
+            {
+              required: false,
+            },
+          ]} style={{width:"90%"}}
+        >
+          <Input placeholder={this.state.host} disabled/>
         </Form.Item>
         <Form.Item
           name="number"
@@ -81,16 +99,13 @@ class Demo extends BaseComponent {
           <Select
             placeholder="选择你拥有的果树编号"
             allowClear
-            style={{width:"80%"}}
+            style={{width:"80%"}} onChange={this.onNumberChange}
           > 
             {this.state.balanceList.map(item => (<Option value={item} key={item}>果树编号: {item}</Option>))}
           </Select>
         </Form.Item>
-        <Form.Item {...tailLayout}>
-          <Button type="primary" htmlType="submit">
-            转让
-          </Button>
-        </Form.Item>
+
+
       </Form>
       </div>
     );
@@ -354,7 +369,7 @@ class SiderDemo extends React.Component {
               果树列表
             </Menu.Item>
             <Menu.Item key="3" icon={<TeamOutlined />} onClick={this.onClickItem.bind(this, 3)}>
-              果树转让
+              地址查询
             </Menu.Item>
             <Menu.Item key="４" icon={<UploadOutlined />} onClick={this.onClickItem.bind(this, 4)}>
               申诉or确认

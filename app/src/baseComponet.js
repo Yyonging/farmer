@@ -17,7 +17,7 @@ class BaseComponent extends React.Component {
       const {getProcess} = Block.auction.methods;
       var res = await getProcess(t).call();
       console.log("refreshProcess status:", t, res)
-      this.setState({status:Number(res)}, ()=>{console.log("MySteps", this.state)});
+      this.setState({status:Number(res)});
     }
   
     async getHighest() {
@@ -108,18 +108,6 @@ class BaseComponent extends React.Component {
 
     async getAmount() {
       await this.connect();
-
-      // let t = Math.ceil(new Date().valueOf() / 1000);
-      // const {getProcess} = Block.auction.methods;
-      // let res = Number(await getProcess(t).call());
-      // if (res !== 4) {
-      //   this.setState({amount:0})
-      // } else {
-      //   console.log("getAmount", res);
-      //   const {queryAmount} = Block.auction.methods;
-      //   res = await queryAmount().call({from:Block.account});
-      //   this.setState({amount:res});
-      // }
       const {isGetMoney} = Block.auction.methods;
       var isReturn = await isGetMoney().call({from:Block.account});
       this.setState({isGetMoney:isReturn});
@@ -145,6 +133,14 @@ class BaseComponent extends React.Component {
       const {getAmount} = Block.auction.methods;
       await getAmount().send({from:Block.account})
       message.info("提取完成！");
+    }
+
+    async queryAddrs(number) {
+      await this.connect()
+      const {getAddrs} = Block.auction.methods;
+      let res = await getAddrs(number).call({from:Block.account});
+      console.log("queryAddrs", res);
+      this.setState({host:res[0], addr:res[1]})
     }
 
 

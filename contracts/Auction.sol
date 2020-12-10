@@ -138,10 +138,11 @@ contract Auction {
         return true;
     }
 
-    //farmer 根据编号查询树币得主地址
-    function getAddrs(uint number) public bidsConfirm view returns (string memory highest){
+    //farmer 根据编号查询树币得主地址 和 区块链地址
+    function getAddrs(uint number) public view returns (string memory highest, address highAddr){
         require(msg.sender == farmer);
         highest = bids[number].host;
+        highAddr = bids[number].addr;
     }
     
     //竞价者申诉期申诉 或者确认收货
