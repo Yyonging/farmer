@@ -49,8 +49,8 @@ module.exports = {
     },
     
     develop: {
-     host: "192.168.8.208",     // Localhost (default: none)
-     port: 8545,
+     host: "127.0.0.1",     // Localhost (default: none)
+     port: 7545,
      network_id: "*",       // Any network (default: none)
 
     },

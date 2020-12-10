@@ -102,6 +102,7 @@ class MyCard extends BaseComponent {
   constructor(props) {
     super(props);
     this.state = {
+      isGetMoney:false
     }
     this.refInput = React.createRef();
   }
@@ -116,9 +117,13 @@ class MyCard extends BaseComponent {
     this.recordAddr(this.state.number, addr)
   }
 
+  getBidReturn = () => {
+    this.getBidAmount();
+  }
   componentDidMount() {
     this.getBidInfo();
     this.refreshProcess();
+    this.getAmount();
   }
 
   render() {
@@ -151,7 +156,12 @@ class MyCard extends BaseComponent {
                 type="inner"
                 title="收益(结算期可提取)"
             >
-              <Button type="primary" size="middle" onClick={()=>{}}>提取收益</Button>
+              <label>预估返利: {this.state.amount}</label>
+              
+              {!this.state.isGetMoney?
+              <Button type="primary" size="middle" style={{marginLeft:"20px"}} onClick={this.getBidReturn.bind(this)}>提取返利</Button>
+              : <Button type="primary" size="middle" style={{marginLeft:"20px"}} disabled>已提取返利</Button>
+            }
             </Card>
     </Card>
     );
@@ -303,10 +313,10 @@ class WithdrawOrConfirm extends BaseComponent {
         <p　style={{width:"50%", marginLeft:"22%", marginTop:"10%"}}>确认申诉期,竞拍成功的您可以选择申诉或者确认收货,　如果选择申诉，并且大多数人也选择申诉时，farmer将得到无法获得你所竞拍果树所花费的奖励。
           选择确认收货，并且大多数人也选择确认收货时，farmer 能提取竞拍奖励，您也将获取竞拍花费的10%的返利。
         </p>
-      <Button type="primary" htmlType="submit" style={{marginLeft:"30%", marginTop:"50px"}} onClick={this.onClickItem.bind(this, false)}>
+      <Button type="primary" htmlType="submit" style={{marginLeft:"30%", marginTop:"50px"}} onClick={this.onClickItem.bind(this, true)}>
       申诉投票
     </Button>
-    <Button type="primary" htmlType="submit" style={{marginLeft:"10%"}} onClick={this.onClickItem.bind(this, true)} >
+    <Button type="primary" htmlType="submit" style={{marginLeft:"10%"}} onClick={this.onClickItem.bind(this, false)} >
           确认收货
     </Button>
     </div>

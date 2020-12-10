@@ -6,15 +6,17 @@ contract Auction {
     TreeCoin treeCoin;
     uint public auctionTime; //竞价开启时间
     uint constant total = 16;
-    uint constant day = 3600 * 24;
-    // uint constant day = 3;
+    // uint constant day = 3600 * 24;
+    uint constant day = 2;
     bool isFarmerGetMoney;
     struct Bid {
         uint256 highestPrice; //最高出价
         address payable addr; //最高出价地址
         bool isWithdraw;//是否退款
         bool isJudge; //是否已经申诉
+        bool isGetMoney; //是否已经获取返利
         string host;
+
     }
     
     address farmer;
@@ -35,7 +37,7 @@ contract Auction {
         //初始价格为树币的默认价格, 出价者为farmer
         for(uint i = 0; i < treeNumbers.length; i++) {
             // treeNumbers.push(treeCoin.initTrcs[i].number);
-            bids[treeNumbers[i]] = Bid(price, msg.sender, false, false, "");
+            bids[treeNumbers[i]] = Bid(price, msg.sender, false, false, false, "");
         }
     }
 
@@ -158,16 +160,40 @@ contract Auction {
         return bids[number].isJudge;
     }
 
+    //查询是否已经提取返利
+    function isGetMoney() public view returns (bool) {
+        if (msg.sender == farmer) return isFarmerGetMoney;
+        else {
+            for (uint i=0; i < treeNumbers.length; i++) {
+                if (msg.sender == bids[treeNumbers[i]].addr) {
+                    return bids[treeNumbers[i]].isGetMoney;
+                }
+            }
+            return false;
+        }
+    }
+    //提取返利
     function getAmount() getMoney public returns (bool) {
         uint256 amount = queryAmount();
-        if (amount > 0) {
+        if (amount > 0 && msg.sender == farmer && !isFarmerGetMoney) {
+            isFarmerGetMoney = true;
             msg.sender.transfer(amount);
+            return true;
         }
-        return true;
+        if (amount > 0) {
+            for (uint i=0; i < treeNumbers.length; i++) {
+                if (msg.sender == bids[treeNumbers[i]].addr && !bids[treeNumbers[i]].isGetMoney) {
+                    bids[treeNumbers[i]].isGetMoney = true;
+                    msg.sender.transfer(amount);
+                    return true;
+                }
+            }
+        }
+
     }
 
     //是否应该退款
-    function _isWithdraw() getMoney private view returns (bool) {
+    function _isWithdraw() private view returns (bool) {
         uint unWithdrawCount = 0;
         uint withdrawCount = 0;
         for (uint i=0; i < treeNumbers.length; i++) {
@@ -187,7 +213,7 @@ contract Auction {
     }
 
     //预估收益
-    function queryAmount() public getMoney view returns (uint256) {
+    function queryAmount() public returns (uint256) {
         //farmer 提款前提 不退款反馈多于退款反馈 只能提取未申诉退款钱的90%, 剩下10%作为未申诉退款返利
         //judge 成功 获取10%返利 未judge 不能获取返利
         //每增加一人申诉退款，不仅不能提取该树币的钱，且减少提取等量的钱
@@ -195,23 +221,23 @@ contract Auction {
         uint256 decreaseAmount;
         if (!_isWithdraw() && (msg.sender == farmer)) {
             for (uint i=0; i < treeNumbers.length; i++) {
-                if (!bids[treeNumbers[i]].isJudge || !bids[treeNumbers[i]].isWithdraw) {
+                if (bids[treeNumbers[i]].addr == msg.sender) {
+                    continue;    
+                } else if ((!bids[treeNumbers[i]].isJudge || !bids[treeNumbers[i]].isWithdraw)) {
                     amount += bids[treeNumbers[i]].highestPrice * 9 / 10;
+                    emit ProcessEvent(amount);
                 } else {
                     decreaseAmount += bids[treeNumbers[i]].highestPrice;
-                    }
+                }
             }
             if (amount > decreaseAmount) {
                 return (amount - decreaseAmount);
-                // msg.sender.transfer(amount - decreaseAmount);
             }
         } else if (!_isWithdraw() && (msg.sender != farmer)) {
             for (uint i=0; i < treeNumbers.length; i++) {
                 if(msg.sender == bids[treeNumbers[i]].addr) {
                     if (bids[treeNumbers[i]].isJudge && !bids[treeNumbers[i]].isWithdraw) {
                         return (bids[treeNumbers[i]].highestPrice*11 / 10);
-                        // msg.sender.transfer(bids[treeNumbers[i]].highestPrice*11 / 10);
-                        // return true;
                     }
                 }
             }
@@ -220,12 +246,10 @@ contract Auction {
                 if(msg.sender == bids[treeNumbers[i]].addr) {
                     if (bids[treeNumbers[i]].isJudge && bids[treeNumbers[i]].isWithdraw) {
                         return (bids[treeNumbers[i]].highestPrice*2);
-                        // msg.sender.transfer(bids[treeNumbers[i]].highestPrice*2);
-                        // return true;
                     }
                 }
             }
-        } 
+        }
         return 0;
     }
 }

@@ -106,6 +106,49 @@ class BaseComponent extends React.Component {
     }
 
 
+    async getAmount() {
+      await this.connect();
+
+      // let t = Math.ceil(new Date().valueOf() / 1000);
+      // const {getProcess} = Block.auction.methods;
+      // let res = Number(await getProcess(t).call());
+      // if (res !== 4) {
+      //   this.setState({amount:0})
+      // } else {
+      //   console.log("getAmount", res);
+      //   const {queryAmount} = Block.auction.methods;
+      //   res = await queryAmount().call({from:Block.account});
+      //   this.setState({amount:res});
+      // }
+      const {isGetMoney} = Block.auction.methods;
+      var isReturn = await isGetMoney().call({from:Block.account});
+      this.setState({isGetMoney:isReturn});
+      const {queryAmount} = Block.auction.methods;
+      let res = await queryAmount().call({from:Block.account});
+      this.setState({amount:(res/10**18)});
+
+    }
+
+
+    async getBidAmount() {
+      await this.connect()
+      const {isGetMoney} = Block.auction.methods;
+      var isReturn = await isGetMoney().call({from:Block.account});
+      if (isReturn) {
+        message.warning("您已经提取过收益");
+        return ;
+      }
+      if (this.state.amount == 0) {
+        message.info("您没有返利可以提取")
+        return ;
+      }
+      const {getAmount} = Block.auction.methods;
+      await getAmount().send({from:Block.account})
+      message.info("提取完成！");
+    }
+
+
+
     async refreshStatus() {
       await this.connect();
       const {getStatus} = Block.meta.methods;
@@ -135,7 +178,7 @@ class BaseComponent extends React.Component {
       this.setState({status:"Initiating transaction... (please wait)"})
       message.info(this.state.status);
       const { transfer } = Block.meta.methods;
-      const success = await transfer(receiver, amount).send({ from: Block.account });
+      const success = await transfer(receiver, amount).call({ from: Block.account });
       console.log(success);
       this.setState({status:"Transaction complete!"});
       message.info(this.state.status);
