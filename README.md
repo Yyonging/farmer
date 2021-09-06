@@ -30,3 +30,7 @@
 ##### 系统相关接口
 
 ![image](https://user-images.githubusercontent.com/14345714/125408660-b77b5680-e3ed-11eb-87db-54330ecccd8b.png)
+
+##### 成功后的界面
+![image](https://user-images.githubusercontent.com/14345714/132198098-eb2dc7a3-d4b9-4ebc-a24f-e0f14faf59af.jpg)
+
